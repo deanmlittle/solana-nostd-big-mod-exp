@@ -3,16 +3,16 @@ use dashu::{integer::UBig, integer::fast_div::ConstDivisor};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-struct BigModExpParams {
-    base: *const u8,
+pub struct BigModExpParams {
+    base: u8,
     base_len: usize,
-    exponent: *const u8,
+    exponent: u8,
     exponent_len: usize,
-    modulus: *const u8,
+    modulus: u8,
     modulus_len: usize,
 }
 
-#[cfg(target_os = "solana")]
+#[cfg(all(not(feature="no-syscall"), target_os = "solana"))]
 extern "C" {
     fn sol_big_mod_exp(
         param: *const BigModExpParams,
@@ -20,7 +20,7 @@ extern "C" {
     ) -> u64;
 }
 
-#[cfg(target_os = "solana")]
+#[cfg(all(not(feature="no-syscall"), target_os = "solana"))]
 #[inline(always)]
 pub fn big_mod_exp_fixed<const N: usize>(base: &[u8], exponent: &[u8], modulus: &[u8;N]) -> [u8;N] {
     use std::mem::MaybeUninit;
@@ -42,7 +42,7 @@ pub fn big_mod_exp_fixed<const N: usize>(base: &[u8], exponent: &[u8], modulus: 
     }
 }
 
-#[cfg(target_os = "solana")]
+#[cfg(all(not(feature="no-syscall"), target_os = "solana"))]
 #[inline(always)]
 pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     let mut return_value = Vec::with_capacity(modulus.len());
@@ -62,7 +62,7 @@ pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     return_value
 }
 
-#[cfg(not(target_os = "solana"))]
+#[cfg(any(feature="no-syscall", not(target_os = "solana")))]
 pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     let ring = ConstDivisor::new(UBig::from_be_bytes(modulus));
     let base = ring.reduce(UBig::from_be_bytes(base));
@@ -70,7 +70,7 @@ pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     result.to_be_bytes().to_vec()
 }
 
-#[cfg(not(target_os = "solana"))]
+#[cfg(any(feature="no-syscall", not(target_os = "solana")))]
 pub fn big_mod_exp_fixed<const N: usize>(base: &[u8], exponent: &[u8], modulus: &[u8;N]) -> [u8;N] {
     let ring = ConstDivisor::new(UBig::from_be_bytes(modulus));
     let base = ring.reduce(UBig::from_be_bytes(base));
