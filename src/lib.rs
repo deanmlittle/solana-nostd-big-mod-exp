@@ -1,4 +1,4 @@
-#[cfg(not(target_os = "solana"))]
+#[cfg(any(not(target_os = "solana"), feature = "no-syscall"))]
 use dashu::{integer::UBig, integer::fast_div::ConstDivisor};
 
 #[repr(C)]
