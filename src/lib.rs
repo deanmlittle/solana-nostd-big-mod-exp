@@ -4,11 +4,11 @@ use dashu::{integer::UBig, integer::fast_div::ConstDivisor};
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct BigModExpParams {
-    base: u8,
+    base: *const u8,
     base_len: usize,
-    exponent: u8,
+    exponent: *const u8,
     exponent_len: usize,
-    modulus: u8,
+    modulus: *const u8,
     modulus_len: usize,
 }
 
