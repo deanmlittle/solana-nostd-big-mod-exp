@@ -1,14 +1,15 @@
-#[cfg(any(not(target_os = "solana"), feature = "no-syscall"))]
+#[cfg(not(target_os = "solana"))]
 use dashu::{integer::UBig, integer::fast_div::ConstDivisor};
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
-pub struct BigModExpParams {
-    base: u8,
+#[cfg(all(not(feature="no-syscall"), target_os = "solana"))]
+struct BigModExpParams {
+    base: *const u8,
     base_len: usize,
-    exponent: u8,
+    exponent: *const u8,
     exponent_len: usize,
-    modulus: u8,
+    modulus: *const u8,
     modulus_len: usize,
 }
 
@@ -62,7 +63,7 @@ pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     return_value
 }
 
-#[cfg(any(feature="no-syscall", not(target_os = "solana")))]
+#[cfg(any(not(target_os = "solana"), feature = "no-syscall"))]
 pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     let ring = ConstDivisor::new(UBig::from_be_bytes(modulus));
     let base = ring.reduce(UBig::from_be_bytes(base));
@@ -70,7 +71,7 @@ pub fn big_mod_exp(base: &[u8], exponent: &[u8], modulus: &[u8]) -> Vec<u8> {
     result.to_be_bytes().to_vec()
 }
 
-#[cfg(any(feature="no-syscall", not(target_os = "solana")))]
+#[cfg(any(not(target_os = "solana"), feature = "no-syscall"))]
 pub fn big_mod_exp_fixed<const N: usize>(base: &[u8], exponent: &[u8], modulus: &[u8;N]) -> [u8;N] {
     let ring = ConstDivisor::new(UBig::from_be_bytes(modulus));
     let base = ring.reduce(UBig::from_be_bytes(base));
